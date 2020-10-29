@@ -572,6 +572,15 @@ abstract class Store
 		return $dbs;
 	}
 
+	public function getDbStats(): array
+	{
+		return (array)iterator_to_array($this->executeCommand(
+			new Command([
+				'dbStats' => 1
+			])
+		))[0] ?? [];
+	}
+
 	public function getServerBuildInfo(): \MongoDB\Driver\Cursor
 	{
 		return $this->executeCommand(
