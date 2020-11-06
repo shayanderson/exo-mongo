@@ -57,6 +57,13 @@ abstract class Store
 		$this->setDatabaseName($database);
 	}
 
+	/**
+	 * Collection setter
+	 *
+	 * @param string $collection
+	 * @return \Exo2\Mongo\Store
+	 * @throws Exception
+	 */
 	public function __get(string $collection): \Exo2\Mongo\Store
 	{
 		if(!$this->isCollectionAllowed($collection))
@@ -69,6 +76,13 @@ abstract class Store
 		return $this;
 	}
 
+	/**
+	 * Aggregate
+	 *
+	 * @param array $pipeline
+	 * @param array $options
+	 * @return array
+	 */
 	public function aggregate(array $pipeline, array $options = []): array
 	{
 		$this->log(__METHOD__, [
@@ -81,6 +95,12 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Auto ID mapper input
+	 *
+	 * @param array|object $document
+	 * @return void
+	 */
 	final protected static function autoIdMapperInput(&$document): void
 	{
 		if(!Options::get(Options::AUTO_ID))
@@ -134,6 +154,12 @@ abstract class Store
 		}
 	}
 
+	/**
+	 * Auto ID mapper input array
+	 *
+	 * @param array $documents
+	 * @return void
+	 */
 	final protected static function autoIdMapperInputArray(array &$documents): void
 	{
 		foreach($documents as &$doc)
@@ -142,38 +168,82 @@ abstract class Store
 		}
 	}
 
+	/**
+	 * Before insert many trigger
+	 *
+	 * @param array $documents
+	 * @return array
+	 */
 	protected function beforeInsertMany(array $documents)
 	{
 		return $documents;
 	}
 
+	/**
+	 * Before insert one trigger
+	 *
+	 * @param array|object $document
+	 * @return array|object
+	 */
 	protected function beforeInsertOne($document)
 	{
 		return $document;
 	}
 
+	/**
+	 * Before replace trigger
+	 *
+	 * @param array|object $document
+	 * @return array|object
+	 */
 	protected function beforeReplace($document)
 	{
 		return $document;
 	}
 
+	/**
+	 * Before replace bulk trigger
+	 *
+	 * @param array $documents
+	 * @return array
+	 */
 	protected function beforeReplaceBulk(array $documents)
 	{
 		return $documents;
 	}
 
+	/**
+	 * Before update trigger
+	 *
+	 * @param array|object $update
+	 * @return array|object
+	 */
 	protected function beforeUpdate($update)
 	{
 		return $update;
 	}
 
+	/**
+	 * Before update bulk trigger
+	 *
+	 * @param array $documents
+	 * @return array
+	 */
 	protected function beforeUpdateBulk(array $documents)
 	{
 		return $documents;
 	}
 
 	/**
+	 * Bulk write
+	 *
+	 * @param string $operation
+	 * @param string $method
+	 * @param array $documents
+	 * @param array $writeOptions
+	 * @param array $options
 	 * @return int (affected)
+	 * @throws Exception
 	 */
 	protected function bulkWrite(string $operation, string $method, array $documents,
 		array $writeOptions, array $options): int
@@ -222,6 +292,11 @@ abstract class Store
 			->getModifiedCount();
 	}
 
+	/**
+	 * Client getter
+	 *
+	 * @return \MongoDB\Client
+	 */
 	final protected function client(): \MongoDB\Client
 	{
 		if(!$this->client)
@@ -236,6 +311,12 @@ abstract class Store
 		return $this->client;
 	}
 
+	/**
+	 * Collection getter
+	 *
+	 * @return \MongoDB\Collection
+	 * @throws Exception
+	 */
 	final public function collection(): \MongoDB\Collection
 	{
 		if(!$this->collection)
@@ -246,6 +327,12 @@ abstract class Store
 		return $this->database()->{$this->collection};
 	}
 
+	/**
+	 * Convert BSON document to array
+	 *
+	 * @param \MongoDB\Model\BSONDocument|null $doc
+	 * @return mixed
+	 */
 	protected static function &convertBsonDocToArray(?\MongoDB\Model\BSONDocument $doc)
 	{
 		if(!$doc)
@@ -303,6 +390,12 @@ abstract class Store
 		return $doc;
 	}
 
+	/**
+	 * Convert BSON ObjectId to string
+	 *
+	 * @param ObjectId $objectId
+	 * @return string|null
+	 */
 	protected static function convertBsonObjectIdToString($objectId): ?string
 	{
 		if($objectId instanceof \MongoDB\BSON\ObjectId)
@@ -318,6 +411,12 @@ abstract class Store
 		return null;
 	}
 
+	/**
+	 * Convert cursor to array
+	 *
+	 * @param \MongoDB\Driver\Cursor $cursor
+	 * @return array
+	 */
 	protected static function &convertCursorToArray(\MongoDB\Driver\Cursor $cursor): array
 	{
 		$r = [];
@@ -330,6 +429,12 @@ abstract class Store
 		return $r;
 	}
 
+	/**
+	 * Convert IDs to ObjectIds
+	 *
+	 * @param array $ids
+	 * @return array
+	 */
 	public function &convertIdsToObjectIds(array &$ids): array
 	{
 		foreach($ids as &$id)
@@ -340,6 +445,13 @@ abstract class Store
 		return $ids;
 	}
 
+	/**
+	 * Count
+	 *
+	 * @param array $filter
+	 * @param array $options
+	 * @return int
+	 */
 	public function count(array $filter = [], array $options = []): int
 	{
 		self::autoIdMapperInput($filter);
@@ -351,12 +463,23 @@ abstract class Store
 		return $this->collection()->count($filter, $options);
 	}
 
+	/**
+	 * Database getter
+	 *
+	 * @return \MongoDB\Database
+	 */
 	final public function database(): \MongoDB\Database
 	{
 		return $this->client()->{$this->getDatabaseName()};
 	}
 
-	private static function defaultFindOptions(&$options): void
+	/**
+	 * Default find options setter
+	 *
+	 * @param array $options
+	 * @return void
+	 */
+	private static function defaultFindOptions(array &$options): void
 	{
 		if(( $limit = Options::get(Options::DEFAULT_LIMIT) ) > 0 && !isset($options['limit']))
 		{
@@ -364,6 +487,12 @@ abstract class Store
 		}
 	}
 
+	/**
+	 * Delete all
+	 *
+	 * @param array $options
+	 * @return int
+	 */
 	public function deleteAll(array $options = []): int
 	{
 		$this->log(__METHOD__, [
@@ -379,6 +508,10 @@ abstract class Store
 	}
 
 	/**
+	 * Delete by ID
+	 *
+	 * @param int|string $id
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function deleteById($id, array $options = []): int
@@ -392,6 +525,10 @@ abstract class Store
 	}
 
 	/**
+	 * Delete by IDs
+	 *
+	 * @param array $ids
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function deleteByIds(array $ids, array $options = []): int
@@ -409,6 +546,10 @@ abstract class Store
 	}
 
 	/**
+	 * Delete many
+	 *
+	 * @param array $filter
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function deleteMany(array $filter, array $options = []): int
@@ -433,6 +574,10 @@ abstract class Store
 	}
 
 	/**
+	 * Delete one
+	 *
+	 * @param array $filter
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function deleteOne(array $filter, array $options = []): int
@@ -451,6 +596,13 @@ abstract class Store
 		return 0;
 	}
 
+	/**
+	 * Execute command
+	 *
+	 * @param Command $command
+	 * @param string $databaseName
+	 * @return \MongoDB\Driver\Cursor
+	 */
 	public function executeCommand(\MongoDB\Driver\Command $command, string $databaseName = null)
 	{
 		return $this->client()->getManager()->executeCommand(
@@ -458,6 +610,8 @@ abstract class Store
 	}
 
 	/**
+	 * Find
+	 *
 	 * @param array $filter
 	 * @param array $options
 	 * @return array
@@ -477,6 +631,13 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Find by ID
+	 *
+	 * @param int|string $id
+	 * @param array $options
+	 * @return array|object|null
+	 */
 	public function findById($id, array $options = [])
 	{
 		$this->log(__METHOD__, [
@@ -487,6 +648,13 @@ abstract class Store
 		return $this->findOne(['_id' => $this->objectId($id)], $options);
 	}
 
+	/**
+	 * Find by IDs
+	 *
+	 * @param array $ids
+	 * @param array $options
+	 * @return array
+	 */
 	public function findByIds(array $ids, array $options = []): array
 	{
 		$this->log(__METHOD__, [
@@ -507,6 +675,13 @@ abstract class Store
 		], $options);
 	}
 
+	/**
+	 * Find one
+	 *
+	 * @param array $filter
+	 * @param array $options
+	 * @return array|object|null
+	 */
 	public function findOne(array $filter = [], array $options = [])
 	{
 		self::defaultFindOptions($options);
@@ -522,6 +697,11 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Collection names getter
+	 *
+	 * @return array
+	 */
 	public function &getCollections(): array
 	{
 		$collections = [];
@@ -543,6 +723,12 @@ abstract class Store
 		return $collections;
 	}
 
+	/**
+	 * Database name getter
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
 	public function getDatabaseName(): string
 	{
 		if(!$this->database)
@@ -559,6 +745,11 @@ abstract class Store
 		return $this->database;
 	}
 
+	/**
+	 * Database names getter
+	 *
+	 * @return array
+	 */
 	public function &getDatabases(): array
 	{
 		$dbs = [];
@@ -572,6 +763,11 @@ abstract class Store
 		return $dbs;
 	}
 
+	/**
+	 * DB stats getter
+	 *
+	 * @return array
+	 */
 	public function getDbStats(): array
 	{
 		return (array)iterator_to_array($this->executeCommand(
@@ -581,6 +777,11 @@ abstract class Store
 		))[0] ?? [];
 	}
 
+	/**
+	 * Server build info getter
+	 *
+	 * @return \MongoDB\Driver\Cursor
+	 */
 	public function getServerBuildInfo(): \MongoDB\Driver\Cursor
 	{
 		return $this->executeCommand(
@@ -590,6 +791,11 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Server replica set status getter
+	 *
+	 * @return \MongoDB\Driver\Cursor
+	 */
 	public function getServerReplicaSetStatus(): \MongoDB\Driver\Cursor
 	{
 		return $this->executeCommand(
@@ -600,6 +806,11 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Server status getter
+	 *
+	 * @return \MongoDB\Driver\Cursor
+	 */
 	public function getServerStatus(): \MongoDB\Driver\Cursor
 	{
 		return $this->executeCommand(
@@ -609,16 +820,33 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Server version getter
+	 *
+	 * @return string
+	 */
 	public function getServerVersion(): string
 	{
 		return $this->getServerBuildInfo()->toArray()[0]->version ?? '';
 	}
 
+	/**
+	 * Servers getter
+	 *
+	 * @return array
+	 */
 	public function getServers(): array
 	{
 		return $this->client()->getManager()->getServers();
 	}
 
+	/**
+	 * Check if exists
+	 *
+	 * @param array $filter
+	 * @param array $options
+	 * @return bool
+	 */
 	public function has(array $filter, array $options = []): bool
 	{
 		$this->log(__METHOD__, [
@@ -629,6 +857,12 @@ abstract class Store
 		return $this->count($filter, $options) > 0;
 	}
 
+	/**
+	 * Check if ID exists
+	 *
+	 * @param int|string $id
+	 * @return bool
+	 */
 	public function hasId($id): bool
 	{
 		$this->log(__METHOD__, [
@@ -639,6 +873,10 @@ abstract class Store
 	}
 
 	/**
+	 * Insert many
+	 *
+	 * @param array $documents
+	 * @param array $options
 	 * @return array (IDs)
 	 */
 	public function insertMany(array $documents, array $options = []): array
@@ -665,9 +903,11 @@ abstract class Store
 	}
 
 	/**
+	 * Insert one
+	 *
 	 * @param array|object $document
 	 * @param array $options
-	 * @return string|null (ID)
+	 * @return int|string|null (ID)
 	 */
 	public function insertOne($document, array $options = []): ?string
 	{
@@ -686,6 +926,13 @@ abstract class Store
 		return null;
 	}
 
+	/**
+	 * Check if collection is allowed
+	 *
+	 * @staticvar array $dbAllowAll
+	 * @param string $collection
+	 * @return bool
+	 */
 	private function isCollectionAllowed(string $collection): bool
 	{
 		if(!count(Options::get(Options::COLLECTIONS))) // allow all, no collection restrictions
@@ -720,6 +967,13 @@ abstract class Store
 		);
 	}
 
+	/**
+	 * Log debug
+	 *
+	 * @param string $message
+	 * @param array $context
+	 * @return void
+	 */
 	private function log(string $message, array $context): void
 	{
 		$context = [
@@ -730,6 +984,12 @@ abstract class Store
 		\Exo\Factory::getInstance()->logger(self::LOG_CHANNEL)->debug($message, $context);
 	}
 
+	/**
+	 * ID to ObjectId
+	 *
+	 * @param mixed $id
+	 * @return ObjectId
+	 */
 	public function objectId($id)
 	{
 		if(!is_string($id) || strlen($id) !== 24)
@@ -740,6 +1000,11 @@ abstract class Store
 		return new ObjectId($id);
 	}
 
+	/**
+	 * Ping
+	 *
+	 * @return bool
+	 */
 	public function ping(): bool
 	{
 		try
@@ -764,17 +1029,26 @@ abstract class Store
 	}
 
 	/**
+	 * Bulk replace
+	 *
+	 * @param array $documents
+	 * @param array $writeOptions
+	 * @param array $options
 	 * @return int (affected)
 	 */
-	public function replaceBulk(array $documents, array $write_options = ['ordered' => true],
+	public function replaceBulk(array $documents, array $writeOptions = ['ordered' => true],
 		array $options = []): int
 	{
 		$this->log(__METHOD__, []);
 		$documents = $this->beforeReplaceBulk($documents);
-		return $this->bulkWrite('replaceOne', __METHOD__, $documents, $write_options, $options);
+		return $this->bulkWrite('replaceOne', __METHOD__, $documents, $writeOptions, $options);
 	}
 
 	/**
+	 * Replace by ID
+	 *
+	 * @param int|string $id
+	 * @param array|object $document
 	 * @return int (affected)
 	 */
 	public function replaceById($id, $document): int
@@ -787,6 +1061,11 @@ abstract class Store
 	}
 
 	/**
+	 * Replace one
+	 *
+	 * @param array $filter
+	 * @param array|object $document
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function replaceOne(array $filter, $document, array $options = []): int
@@ -808,23 +1087,38 @@ abstract class Store
 		return 0;
 	}
 
+	/**
+	 * Set database name
+	 *
+	 * @param string $database
+	 * @return void
+	 */
 	public function setDatabaseName(string $database): void
 	{
 		$this->database = $database;
 	}
 
 	/**
+	 * Bulk update
+	 *
+	 * @param array $documents
+	 * @param array $writeOptions
+	 * @param array $options
 	 * @return int (affected)
 	 */
-	public function updateBulk(array $documents, array $write_options = ['ordered' => true],
+	public function updateBulk(array $documents, array $writeOptions = ['ordered' => true],
 		array $options = []): int
 	{
 		$this->log(__METHOD__, []);
 		$documents = $this->beforeUpdateBulk($documents);
-		return $this->bulkWrite('updateOne', __METHOD__, $documents, $write_options, $options);
+		return $this->bulkWrite('updateOne', __METHOD__, $documents, $writeOptions, $options);
 	}
 
 	/**
+	 * Update by ID
+	 *
+	 * @param int|string $id
+	 * @param array|object $update
 	 * @return int (affected)
 	 */
 	public function updateById($id, $update): int
@@ -837,6 +1131,11 @@ abstract class Store
 	}
 
 	/**
+	 * Update many
+	 *
+	 * @param array $filter
+	 * @param array|object $update
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function updateMany(array $filter, $update, array $options = []): int
@@ -858,6 +1157,11 @@ abstract class Store
 	}
 
 	/**
+	 * Update one
+	 *
+	 * @param array $filter
+	 * @param array|object $update
+	 * @param array $options
 	 * @return int (affected)
 	 */
 	public function updateOne(array $filter, $update, array $options = []): int
@@ -880,6 +1184,13 @@ abstract class Store
 		return 0;
 	}
 
+	/**
+	 * Property value by filter getter
+	 *
+	 * @param string $property
+	 * @param array $filter
+	 * @return mixed
+	 */
 	public function value(string $property, array $filter)
 	{
 		$this->log(__METHOD__, [
@@ -910,6 +1221,13 @@ abstract class Store
 		return null;
 	}
 
+	/**
+	 * Property value by ID getter
+	 *
+	 * @param int|string $id
+	 * @param string $property
+	 * @return mixed
+	 */
 	public function valueById($id, string $property)
 	{
 		$this->log(__METHOD__, [
