@@ -886,6 +886,11 @@ abstract class Store
 			'options' => $options
 		]);
 
+		if(empty($documents)) // avoid MongoDB exception "$documents is empty"
+		{
+			return [];
+		}
+
 		$documents = $this->beforeInsertMany($documents);
 		self::autoIdMapperInputArray($documents);
 		$r = [];
