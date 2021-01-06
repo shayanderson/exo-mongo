@@ -3,26 +3,26 @@
 ## Options
 ```php
 use Exo2\Mongo\Options;
-Options::set([
+Options::getInstance()->fromArray([
 	// with port '127.0.0.1:27017'
-	Options::HOSTS => ['127.0.0.1'],
-	Options::USERNAME => 'user',
-	Options::PASSWORD => 'secrect',
+	Options::KEY_HOSTS => ['127.0.0.1'],
+	Options::KEY_USERNAME => 'user',
+	Options::KEY_PASSWORD => 'secrect',
 	// default database
-	Options::DB => 'test',
+	Options::KEY_DB => 'test',
 	// set default limit for find queries to restrict memory usage (default is zero for no limit)
-	Options::DEFAULT_LIMIT => 10000,
+	Options::KEY_DEFAULT_LIMIT => 10000,
 
 	// only allow specific collections
 	// syntax: "[db].[collection]"
 	// DB wildcards supported like: "test.*"
-	Options::COLLECTIONS => [
+	Options::KEY_COLLECTIONS => [
 		'test.users'
 	]
 ]);
 ```
 ### Auto ID Conversion Option
-The `AUTO_ID` option can be set to `true` to automatically convert the `_id` field value from `MongoDB\BSON\ObjectId` to `string` and add a `_ts` field with a timestamp.
+The `KEY_AUTO_ID` option can be set to `true` to automatically convert the `_id` field value from `MongoDB\BSON\ObjectId` to `string` and add a `_ts` field with a timestamp.
 ```
 // with option
 Array
@@ -42,18 +42,18 @@ Array
 )
 ```
 #### Auto ID Conversion Option With Field Mapper
-> Both of the options below require the `AUTO_ID` option to be set to `true`.
+> Both of the options below require the `KEY_AUTO_ID` option to be set to `true`.
 
-The `AUTO_ID_MAP_ID` option can be set to a string to automatically convert the `_id` field name to another name, like `id`.
-The `AUTO_ID_MAP_TIMESTAMP` option can be set to a string to automatically convert the `_ts` field name to another name, like `createdAt`.
+The `KEY_AUTO_ID_MAP_ID` option can be set to a string to automatically convert the `_id` field name to another name, like `id`.
+The `KEY_AUTO_ID_MAP_TIMESTAMP` option can be set to a string to automatically convert the `_ts` field name to another name, like `createdAt`.
 Both of the options support both input and output.
 ```php
 use Exo2\Mongo\Options;
 use Exo2\Mongo\Store;
-Options::set([
-	Options::AUTO_ID => true,
-	Options::AUTO_ID_MAP_ID => 'id',
-	Options::AUTO_ID_MAP_TIMESTAMP => 'createdAt',
+Options::getInstance()->fromArray([
+	Options::KEY_AUTO_ID => true,
+	Options::KEY_AUTO_ID_MAP_ID => 'id',
+	Options::KEY_AUTO_ID_MAP_TIMESTAMP => 'createdAt',
 ]);
 
 $store = new Store;
