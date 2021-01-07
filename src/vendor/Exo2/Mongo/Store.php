@@ -48,13 +48,6 @@ abstract class Store
 	private $database = '';
 
 	/**
-	 * Options
-	 *
-	 * @var \Exo2\Mongo\Options
-	 */
-	private static $options;
-
-	/**
 	 * Init
 	 *
 	 * @param string $database
@@ -62,7 +55,6 @@ abstract class Store
 	public function __construct(string $database = '')
 	{
 		$this->setDatabaseName($database);
-		self::$options = Options::getInstance();
 	}
 
 	/**
@@ -111,7 +103,7 @@ abstract class Store
 	 */
 	final protected static function autoIdMapperInput(&$document): void
 	{
-		if(!self::$options->get(Options::KEY_AUTO_ID))
+		if(!self::options()->get(Options::KEY_AUTO_ID))
 		{
 			return;
 		}
@@ -122,41 +114,41 @@ abstract class Store
 		}
 
 		// replace [id] => _id
-		if(self::$options->has(Options::KEY_AUTO_ID_MAP_ID))
+		if(self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
 		{
 			if(is_object($document))
 			{
-				if(property_exists($document, self::$options->get(Options::KEY_AUTO_ID_MAP_ID)))
+				if(property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_ID)))
 				{
-					$document->_id = $document->{self::$options->get(Options::KEY_AUTO_ID_MAP_ID)};
-					unset($document->{self::$options->get(Options::KEY_AUTO_ID_MAP_ID)});
+					$document->_id = $document->{self::options()->get(Options::KEY_AUTO_ID_MAP_ID)};
+					unset($document->{self::options()->get(Options::KEY_AUTO_ID_MAP_ID)});
 				}
 			}
 			else
 			{
-				if(array_key_exists(self::$options->get(Options::KEY_AUTO_ID_MAP_ID), $document))
+				if(array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_ID), $document))
 				{
-					$document['_id'] = $document[self::$options->get(Options::KEY_AUTO_ID_MAP_ID)];
-					unset($document[self::$options->get(Options::KEY_AUTO_ID_MAP_ID)]);
+					$document['_id'] = $document[self::options()->get(Options::KEY_AUTO_ID_MAP_ID)];
+					unset($document[self::options()->get(Options::KEY_AUTO_ID_MAP_ID)]);
 				}
 			}
 		}
 
 		// rm auto timestamp if exists
-		if(self::$options->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
+		if(self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
 		{
 			if(is_object($document))
 			{
-				if(property_exists($document, self::$options->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)))
+				if(property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)))
 				{
-					unset($document->{self::$options->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)});
+					unset($document->{self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)});
 				}
 			}
 			else
 			{
-				if(array_key_exists(self::$options->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP), $document))
+				if(array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP), $document))
 				{
-					unset($document[self::$options->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]);
+					unset($document[self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]);
 				}
 			}
 		}
@@ -310,9 +302,9 @@ abstract class Store
 		if(!$this->client)
 		{
 			$this->client = new \MongoDB\Client('mongodb://' . implode(',',
-				self::$options->get(Options::KEY_HOSTS)), [
-				'username' => self::$options->get(Options::KEY_USERNAME),
-				'password' => self::$options->get(Options::KEY_PASSWORD)
+				self::options()->get(Options::KEY_HOSTS)), [
+				'username' => self::options()->get(Options::KEY_USERNAME),
+				'password' => self::options()->get(Options::KEY_PASSWORD)
 			]);
 		}
 
@@ -351,15 +343,15 @@ abstract class Store
 
 		$doc = $doc->getArrayCopy();
 
-		if(self::$options->get(Options::KEY_AUTO_ID) && isset($doc['_id']))
+		if(self::options()->get(Options::KEY_AUTO_ID) && isset($doc['_id']))
 		{
 			$isObjectId = $doc['_id'] instanceof \MongoDB\BSON\ObjectId;
 
 			if($isObjectId)
 			{
-				if(self::$options->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
+				if(self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
 				{
-					$doc[self::$options->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]
+					$doc[self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]
 						= $doc['_id']->getTimestamp();
 				}
 				else
@@ -368,16 +360,16 @@ abstract class Store
 				}
 			}
 
-			if(self::$options->has(Options::KEY_AUTO_ID_MAP_ID))
+			if(self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
 			{
 				if($isObjectId)
 				{
-					$doc = [self::$options->get(Options::KEY_AUTO_ID_MAP_ID) => $doc['_id']->__toString()]
+					$doc = [self::options()->get(Options::KEY_AUTO_ID_MAP_ID) => $doc['_id']->__toString()]
 						+ $doc;
 				}
 				else
 				{
-					$doc = [self::$options->get(Options::KEY_AUTO_ID_MAP_ID) => $doc['_id']] + $doc;
+					$doc = [self::options()->get(Options::KEY_AUTO_ID_MAP_ID) => $doc['_id']] + $doc;
 				}
 				unset($doc['_id']);
 			}
@@ -390,7 +382,7 @@ abstract class Store
 			}
 		}
 
-		if(self::$options->get(Options::KEY_RETURN_OBJECTS))
+		if(self::options()->get(Options::KEY_RETURN_OBJECTS))
 		{
 			$doc = (object)$doc;
 		}
@@ -489,7 +481,7 @@ abstract class Store
 	 */
 	private static function defaultFindOptions(array &$options): void
 	{
-		if(( $limit = self::$options->get(Options::KEY_DEFAULT_LIMIT) ) > 0 && !isset($options['limit']))
+		if(( $limit = self::options()->get(Options::KEY_DEFAULT_LIMIT) ) > 0 && !isset($options['limit']))
 		{
 			$options['limit'] = $limit;
 		}
@@ -741,13 +733,13 @@ abstract class Store
 	{
 		if(!$this->database)
 		{
-			if(!self::$options->has(Options::KEY_DB))
+			if(!self::options()->has(Options::KEY_DB))
 			{
 				throw new Exception('No database set in ' . static::class . ' constructor'
 					. ' and missing default DB in options');
 			}
 
-			$this->setDatabaseName((string)self::$options->get(Options::KEY_DB));
+			$this->setDatabaseName((string)self::options()->get(Options::KEY_DB));
 		}
 
 		return $this->database;
@@ -948,7 +940,7 @@ abstract class Store
 	 */
 	private function isCollectionAllowed(string $collection): bool
 	{
-		if(!count(self::$options->get(Options::KEY_COLLECTIONS))) // allow all, no collection restrictions
+		if(!count(self::options()->get(Options::KEY_COLLECTIONS))) // allow all, no collection restrictions
 		{
 			return true;
 		}
@@ -958,7 +950,7 @@ abstract class Store
 		if($dbAllowAll === null)
 		{
 			$dbAllowAll = [];
-			foreach(self::$options->get(Options::KEY_COLLECTIONS) as $rule)
+			foreach(self::options()->get(Options::KEY_COLLECTIONS) as $rule)
 			{
 				if(($pos = strpos($rule, '*')) !== false)
 				{
@@ -976,7 +968,7 @@ abstract class Store
 
 		return in_array(
 			$db . '.' . $collection,
-			self::$options->get(Options::KEY_COLLECTIONS)
+			self::options()->get(Options::KEY_COLLECTIONS)
 		);
 	}
 
@@ -1011,6 +1003,23 @@ abstract class Store
 		}
 
 		return new ObjectId($id);
+	}
+
+	/**
+	 * Options object getter
+	 *
+	 * @return \Exo2\Mongo\Options
+	 */
+	private static function options(): \Exo2\Mongo\Options
+	{
+		static $options;
+
+		if(!$options)
+		{
+			$options = Options::getInstance();
+		}
+
+		return $options;
 	}
 
 	/**

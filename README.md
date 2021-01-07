@@ -3,7 +3,7 @@
 ## Options
 ```php
 use Exo2\Mongo\Options;
-Options::getInstance()->fromArray([
+Options::getInstance()->set([
 	// with port '127.0.0.1:27017'
 	Options::KEY_HOSTS => ['127.0.0.1'],
 	Options::KEY_USERNAME => 'user',
@@ -50,7 +50,7 @@ Both of the options support both input and output.
 ```php
 use Exo2\Mongo\Options;
 use Exo2\Mongo\Store;
-Options::getInstance()->fromArray([
+Options::getInstance()->set([
 	Options::KEY_AUTO_ID => true,
 	Options::KEY_AUTO_ID_MAP_ID => 'id',
 	Options::KEY_AUTO_ID_MAP_TIMESTAMP => 'createdAt',

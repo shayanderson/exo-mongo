@@ -46,58 +46,43 @@ class Options extends \Exo\Options
 	{
 		require_once PATH_VENDOR . 'MongoDB' . DIRECTORY_SEPARATOR . 'functions.php';
 
-		$this->option(self::KEY_AUTO_ID)
-			->default(false)
-			->validator()
+		$this->option(self::KEY_AUTO_ID, false)
 			->boolean()
 			->type();
 
 		$this->option(self::KEY_AUTO_ID_MAP_ID)
-			->validator()
 			->string()
 			->alnum()
 			->optional();
 
 		$this->option(self::KEY_AUTO_ID_MAP_TIMESTAMP)
-			->validator()
 			->string()
 			->alnum()
 			->optional();
 
-		$this->option(self::KEY_COLLECTIONS)
-			->default([])
-			->validator()
+		$this->option(self::KEY_COLLECTIONS, [])
 			->arrayType()
 			->optional();
 
 		$this->option(self::KEY_DB)
-			->validator()
 			->string();
 
-		$this->option(self::KEY_DEFAULT_LIMIT)
-			->default(0)
-			->validator()
+		$this->option(self::KEY_DEFAULT_LIMIT, 0)
 			->number()
 			->integer()
 			->optional();
 
-		$this->option(self::KEY_HOSTS)
-			->default(['127.0.0.1']) // with port: "127.0.0.1:27017"
-			->validator()
+		$this->option(self::KEY_HOSTS, ['127.0.0.1']) // with port: "127.0.0.1:27017"
 			->arrayType();
 
 		$this->option(self::KEY_PASSWORD)
-			->validator()
 			->string();
 
-		$this->option(self::KEY_RETURN_OBJECTS)
-			->default(false)
-			->validator()
+		$this->option(self::KEY_RETURN_OBJECTS, false)
 			->boolean()
 			->type();
 
 		$this->option(self::KEY_USERNAME)
-			->validator()
 			->string();
 	}
 
