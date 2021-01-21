@@ -474,6 +474,17 @@ abstract class Store
 	}
 
 	/**
+	 * Distinct values for property in collection
+	 *
+	 * @param string $property
+	 * @return array
+	 */
+	final public function distinct(string $property): array
+	{
+		return $this->collection()->distinct($property);
+	}
+
+	/**
 	 * Default find options setter
 	 *
 	 * @param array $options
