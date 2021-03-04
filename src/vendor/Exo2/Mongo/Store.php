@@ -485,6 +485,44 @@ abstract class Store
 	}
 
 	/**
+	 * Distinct fields for collection getter
+	 *
+	 * @return array
+	 */
+	final public function &distinctFields(): array
+	{
+		$a = $this->aggregate([
+			[
+				'$project' => [
+					'arr' => [
+						'$objectToArray' => '$$ROOT'
+					]
+				]
+			],
+			[
+				'$unwind' => '$arr'
+			],
+			[
+				'$group' => [
+					'_id' => null,
+					'fields' => [
+						'$addToSet' => '$arr.k'
+					]
+				]
+			]
+		]);
+
+		if(isset($a[0]->fields) && $a[0]->fields instanceof \MongoDB\Model\BSONArray)
+		{
+			$a = $a[0]->fields->getArrayCopy();
+			sort($a);
+			return $a;
+		}
+
+		return [];
+	}
+
+	/**
 	 * Default find options setter
 	 *
 	 * @param array $options
@@ -789,6 +827,39 @@ abstract class Store
 	}
 
 	/**
+	 * Indexes getter
+	 *
+	 * @return array
+	 */
+	public function &getIndexes(): array
+	{
+		$r = [];
+
+		$indexSizes = (array)($this->getStats()[0]->indexSizes ?? []);
+
+		foreach((array)iterator_to_array(
+			$this->collection()->listIndexes()
+		) as $o)
+		{
+			$size = $indexSizes[$o->getName()] ?? 0;
+			$r[] = [
+				'name' => $o->getName(),
+				'key' => $o->getKey(),
+				'isSparse' => $o->isSparse(),
+				'isTtl' => $o->isTtl(),
+				'isUnique' => $o->isUnique(),
+				'size' => $size
+			];
+		}
+
+		usort($r, function($a, $b){
+			return $a['name'] <=> $b['name'];
+		});
+
+		return $r;
+	}
+
+	/**
 	 * Server build info getter
 	 *
 	 * @return \MongoDB\Driver\Cursor
@@ -849,6 +920,20 @@ abstract class Store
 	public function getServers(): array
 	{
 		return $this->client()->getManager()->getServers();
+	}
+
+	/**
+	 * Collection stats getter
+	 *
+	 * @return array
+	 */
+	public function getStats(): array
+	{
+		return (array)iterator_to_array($this->executeCommand(
+			new Command([
+				'collStats' => $this->collection
+			])
+		));
 	}
 
 	/**
