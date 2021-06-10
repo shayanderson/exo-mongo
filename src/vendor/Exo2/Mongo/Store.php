@@ -96,6 +96,19 @@ abstract class Store
 	}
 
 	/**
+	 * Collection allocation helper
+	 *
+	 * @param string $collection
+	 * @param mixed $id
+	 * @return self
+	 */
+	public function allocate(string $collection, $id): self
+	{
+		$this->collection = $collection . '__' . substr(md5($id), 0, 2);
+		return $this;
+	}
+
+	/**
 	 * Auto ID mapper input
 	 *
 	 * @param array|object $document
