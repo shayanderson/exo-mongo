@@ -29,6 +29,7 @@ class Options extends \Exo\Options
 	const KEY_DEFAULT_LIMIT = 'Exo2.Mongo.defaultLimit';
 	const KEY_HOSTS = 'Exo2.Mongo.hosts';
 	const KEY_PASSWORD = 'Exo2.Mongo.password';
+	const KEY_REPLICA_SET = 'Exo2.Mongo.replicaSet';
 	const KEY_RETURN_OBJECTS = 'Exo2.Mongo.returnObjects';
 	const KEY_USERNAME = 'Exo2.Mongo.username';
 
@@ -76,6 +77,9 @@ class Options extends \Exo\Options
 			->arrayType();
 
 		$this->option(self::KEY_PASSWORD)
+			->string();
+
+		$this->option(self::KEY_REPLICA_SET)
 			->string();
 
 		$this->option(self::KEY_RETURN_OBJECTS, false)

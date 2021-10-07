@@ -66,7 +66,7 @@ abstract class Store
 	 */
 	public function __get(string $collection): \Exo2\Mongo\Store
 	{
-		if(!$this->isCollectionAllowed($collection))
+		if (!$this->isCollectionAllowed($collection))
 		{
 			throw new Exception('Collection "' . $this->getDatabaseName() . '.' . $collection
 				. '" is not allowed');
@@ -116,22 +116,22 @@ abstract class Store
 	 */
 	final protected static function autoIdMapperInput(&$document): void
 	{
-		if(!self::options()->get(Options::KEY_AUTO_ID))
+		if (!self::options()->get(Options::KEY_AUTO_ID))
 		{
 			return;
 		}
 
-		if($document === null || is_scalar($document))
+		if ($document === null || is_scalar($document))
 		{
 			return;
 		}
 
 		// replace [id] => _id
-		if(self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
+		if (self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
 		{
-			if(is_object($document))
+			if (is_object($document))
 			{
-				if(property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_ID)))
+				if (property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_ID)))
 				{
 					$document->_id = $document->{self::options()->get(Options::KEY_AUTO_ID_MAP_ID)};
 					unset($document->{self::options()->get(Options::KEY_AUTO_ID_MAP_ID)});
@@ -139,7 +139,7 @@ abstract class Store
 			}
 			else
 			{
-				if(array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_ID), $document))
+				if (array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_ID), $document))
 				{
 					$document['_id'] = $document[self::options()->get(Options::KEY_AUTO_ID_MAP_ID)];
 					unset($document[self::options()->get(Options::KEY_AUTO_ID_MAP_ID)]);
@@ -148,18 +148,18 @@ abstract class Store
 		}
 
 		// rm auto timestamp if exists
-		if(self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
+		if (self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
 		{
-			if(is_object($document))
+			if (is_object($document))
 			{
-				if(property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)))
+				if (property_exists($document, self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)))
 				{
 					unset($document->{self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)});
 				}
 			}
 			else
 			{
-				if(array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP), $document))
+				if (array_key_exists(self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP), $document))
 				{
 					unset($document[self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]);
 				}
@@ -175,7 +175,7 @@ abstract class Store
 	 */
 	final protected static function autoIdMapperInputArray(array &$documents): void
 	{
-		foreach($documents as &$doc)
+		foreach ($documents as &$doc)
 		{
 			self::autoIdMapperInput($doc);
 		}
@@ -258,20 +258,25 @@ abstract class Store
 	 * @return int (affected)
 	 * @throws Exception
 	 */
-	protected function bulkWrite(string $operation, string $method, array $documents,
-		array $writeOptions, array $options): int
+	protected function bulkWrite(
+		string $operation,
+		string $method,
+		array $documents,
+		array $writeOptions,
+		array $options
+	): int
 	{
 		self::autoIdMapperInputArray($documents);
 		$ops = [];
 
-		foreach($documents as $doc)
+		foreach ($documents as $doc)
 		{
-			if(is_object($doc))
+			if (is_object($doc))
 			{
 				$doc = (array)$doc;
 			}
 
-			if(!isset($doc['_id']))
+			if (!isset($doc['_id']))
 			{
 				throw new Exception(
 					'Method ' . $method . '() requires all documents to have an ID'
@@ -284,10 +289,9 @@ abstract class Store
 			$ops[] = [
 				$operation => [
 					['_id' => $this->objectId($id)], // filter
-					(
-						$operation == 'updateOne'
-							? ['$set' => $doc] // update
-							: $doc // other
+					($operation == 'updateOne'
+						? ['$set' => $doc] // update
+						: $doc // other
 					),
 					$options
 				]
@@ -312,13 +316,22 @@ abstract class Store
 	 */
 	final protected function client(): \MongoDB\Client
 	{
-		if(!$this->client)
+		if (!$this->client)
 		{
-			$this->client = new \MongoDB\Client('mongodb://' . implode(',',
-				self::options()->get(Options::KEY_HOSTS)), [
+			$options = [
 				'username' => self::options()->get(Options::KEY_USERNAME),
-				'password' => self::options()->get(Options::KEY_PASSWORD)
-			]);
+				'password' => self::options()->get(Options::KEY_PASSWORD),
+			];
+
+			if (self::options()->get(Options::KEY_REPLICA_SET))
+			{
+				$options['replicaSet'] = self::options()->get(Options::KEY_REPLICA_SET);
+			}
+
+			$this->client = new \MongoDB\Client('mongodb://' . implode(
+				',',
+				self::options()->get(Options::KEY_HOSTS)
+			), $options);
 		}
 
 		return $this->client;
@@ -332,7 +345,7 @@ abstract class Store
 	 */
 	final public function collection(): \MongoDB\Collection
 	{
-		if(!$this->collection)
+		if (!$this->collection)
 		{
 			throw new Exception('Collection name has not been set');
 		}
@@ -348,7 +361,7 @@ abstract class Store
 	 */
 	protected static function &convertBsonDocToArray(?\MongoDB\Model\BSONDocument $doc)
 	{
-		if(!$doc)
+		if (!$doc)
 		{
 			$doc = null;
 			return $doc;
@@ -356,13 +369,13 @@ abstract class Store
 
 		$doc = $doc->getArrayCopy();
 
-		if(self::options()->get(Options::KEY_AUTO_ID) && isset($doc['_id']))
+		if (self::options()->get(Options::KEY_AUTO_ID) && isset($doc['_id']))
 		{
 			$isObjectId = $doc['_id'] instanceof \MongoDB\BSON\ObjectId;
 
-			if($isObjectId)
+			if ($isObjectId)
 			{
-				if(self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
+				if (self::options()->has(Options::KEY_AUTO_ID_MAP_TIMESTAMP))
 				{
 					$doc[self::options()->get(Options::KEY_AUTO_ID_MAP_TIMESTAMP)]
 						= $doc['_id']->getTimestamp();
@@ -373,9 +386,9 @@ abstract class Store
 				}
 			}
 
-			if(self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
+			if (self::options()->has(Options::KEY_AUTO_ID_MAP_ID))
 			{
-				if($isObjectId)
+				if ($isObjectId)
 				{
 					$doc = [self::options()->get(Options::KEY_AUTO_ID_MAP_ID) => $doc['_id']->__toString()]
 						+ $doc;
@@ -388,14 +401,14 @@ abstract class Store
 			}
 			else
 			{
-				if($isObjectId)
+				if ($isObjectId)
 				{
 					$doc = ['_id' => $doc['_id']->__toString()] + $doc;
 				}
 			}
 		}
 
-		if(self::options()->get(Options::KEY_RETURN_OBJECTS))
+		if (self::options()->get(Options::KEY_RETURN_OBJECTS))
 		{
 			$doc = (object)$doc;
 		}
@@ -411,12 +424,12 @@ abstract class Store
 	 */
 	protected static function convertBsonObjectIdToString($objectId): ?string
 	{
-		if($objectId instanceof \MongoDB\BSON\ObjectId)
+		if ($objectId instanceof \MongoDB\BSON\ObjectId)
 		{
 			return $objectId->__toString();
 		}
 
-		if(is_scalar($objectId))
+		if (is_scalar($objectId))
 		{
 			return (string)$objectId;
 		}
@@ -434,7 +447,7 @@ abstract class Store
 	{
 		$r = [];
 
-		foreach($cursor as $o)
+		foreach ($cursor as $o)
 		{
 			$r[] = &self::convertBsonDocToArray($o);
 		}
@@ -450,7 +463,7 @@ abstract class Store
 	 */
 	public function &convertIdsToObjectIds(array &$ids): array
 	{
-		foreach($ids as &$id)
+		foreach ($ids as &$id)
 		{
 			$id = $this->objectId($id);
 		}
@@ -525,7 +538,7 @@ abstract class Store
 			]
 		]);
 
-		if(isset($a[0]->fields) && $a[0]->fields instanceof \MongoDB\Model\BSONArray)
+		if (isset($a[0]->fields) && $a[0]->fields instanceof \MongoDB\Model\BSONArray)
 		{
 			$a = $a[0]->fields->getArrayCopy();
 			sort($a);
@@ -543,7 +556,7 @@ abstract class Store
 	 */
 	private static function defaultFindOptions(array &$options): void
 	{
-		if(( $limit = self::options()->get(Options::KEY_DEFAULT_LIMIT) ) > 0 && !isset($options['limit']))
+		if (($limit = self::options()->get(Options::KEY_DEFAULT_LIMIT)) > 0 && !isset($options['limit']))
 		{
 			$options['limit'] = $limit;
 		}
@@ -561,7 +574,7 @@ abstract class Store
 			'options' => $options
 		]);
 
-		if(( $res = $this->collection()->deleteMany([], $options) ))
+		if (($res = $this->collection()->deleteMany([], $options)))
 		{
 			return (int)$res->getDeletedCount();
 		}
@@ -621,13 +634,13 @@ abstract class Store
 			'options' => $options
 		]);
 
-		if(empty($filter)) // do not allow delete all
+		if (empty($filter)) // do not allow delete all
 		{
 			return 0;
 		}
 
 		self::autoIdMapperInput($filter);
-		if(( $res = $this->collection()->deleteMany($filter, $options) ))
+		if (($res = $this->collection()->deleteMany($filter, $options)))
 		{
 			return (int)$res->getDeletedCount();
 		}
@@ -650,7 +663,7 @@ abstract class Store
 			'options' => $options
 		]);
 
-		if(( $res = $this->collection()->deleteOne($filter, $options) ))
+		if (($res = $this->collection()->deleteOne($filter, $options)))
 		{
 			return (int)$res->getDeletedCount();
 		}
@@ -668,7 +681,9 @@ abstract class Store
 	public function executeCommand(\MongoDB\Driver\Command $command, string $databaseName = null)
 	{
 		return $this->client()->getManager()->executeCommand(
-			$databaseName ? $databaseName : $this->getDatabaseName(), $command);
+			$databaseName ? $databaseName : $this->getDatabaseName(),
+			$command
+		);
 	}
 
 	/**
@@ -724,7 +739,7 @@ abstract class Store
 			'options' => $options
 		]);
 
-		if(count($ids) === 1) // auto use single find
+		if (count($ids) === 1) // auto use single find
 		{
 			$doc = $this->findById(array_pop($ids), $options);
 			return $doc ? [$doc] : [];
@@ -777,7 +792,7 @@ abstract class Store
 			])
 		);
 
-		foreach($cursor->toArray() as $a)
+		foreach ($cursor->toArray() as $a)
 		{
 			$collections[] = $a->name;
 		}
@@ -793,9 +808,9 @@ abstract class Store
 	 */
 	public function getDatabaseName(): string
 	{
-		if(!$this->database)
+		if (!$this->database)
 		{
-			if(!self::options()->has(Options::KEY_DB))
+			if (!self::options()->has(Options::KEY_DB))
 			{
 				throw new Exception('No database set in ' . static::class . ' constructor'
 					. ' and missing default DB in options');
@@ -817,7 +832,7 @@ abstract class Store
 		$dbs = [];
 
 		/* @var $o \MongoDB\Model\DatabaseInfo */
-		foreach($this->client()->listDatabases() as $o)
+		foreach ($this->client()->listDatabases() as $o)
 		{
 			$dbs[] = $o->getName();
 		}
@@ -850,7 +865,7 @@ abstract class Store
 
 		$indexSizes = (array)($this->getStats()[0]->indexSizes ?? []);
 
-		foreach((array)iterator_to_array(
+		foreach ((array)iterator_to_array(
 			$this->collection()->listIndexes()
 		) as $o)
 		{
@@ -865,7 +880,8 @@ abstract class Store
 			];
 		}
 
-		usort($r, function($a, $b){
+		usort($r, function ($a, $b)
+		{
 			return $a['name'] <=> $b['name'];
 		});
 
@@ -995,7 +1011,7 @@ abstract class Store
 			'options' => $options
 		]);
 
-		if(empty($documents)) // avoid MongoDB exception "$documents is empty"
+		if (empty($documents)) // avoid MongoDB exception "$documents is empty"
 		{
 			return [];
 		}
@@ -1004,10 +1020,11 @@ abstract class Store
 		self::autoIdMapperInputArray($documents);
 		$r = [];
 
-		if(( $res = $this->collection()->insertMany($documents, $options) )
-			&& ( $res = $res->getInsertedIds() ))
+		if (($res = $this->collection()->insertMany($documents, $options))
+			&& ($res = $res->getInsertedIds())
+		)
 		{
-			foreach($res as $objectId)
+			foreach ($res as $objectId)
 			{
 				$r[] = self::convertBsonObjectIdToString($objectId);
 			}
@@ -1032,7 +1049,7 @@ abstract class Store
 
 		$document = $this->beforeInsertOne($document);
 		self::autoIdMapperInput($document);
-		if(( $res = $this->collection()->insertOne($document, $options) ))
+		if (($res = $this->collection()->insertOne($document, $options)))
 		{
 			return self::convertBsonObjectIdToString($res->getInsertedId());
 		}
@@ -1049,19 +1066,19 @@ abstract class Store
 	 */
 	private function isCollectionAllowed(string $collection): bool
 	{
-		if(!count(self::options()->get(Options::KEY_COLLECTIONS))) // allow all, no collection restrictions
+		if (!count(self::options()->get(Options::KEY_COLLECTIONS))) // allow all, no collection restrictions
 		{
 			return true;
 		}
 
 		static $dbAllowAll;
 
-		if($dbAllowAll === null)
+		if ($dbAllowAll === null)
 		{
 			$dbAllowAll = [];
-			foreach(self::options()->get(Options::KEY_COLLECTIONS) as $rule)
+			foreach (self::options()->get(Options::KEY_COLLECTIONS) as $rule)
 			{
-				if(($pos = strpos($rule, '*')) !== false)
+				if (($pos = strpos($rule, '*')) !== false)
 				{
 					$dbAllowAll[] = substr($rule, 0, $pos - 1);
 				}
@@ -1070,7 +1087,7 @@ abstract class Store
 
 		$db = $this->getDatabaseName();
 
-		if($dbAllowAll && in_array($db, $dbAllowAll)) // allow all in DB
+		if ($dbAllowAll && in_array($db, $dbAllowAll)) // allow all in DB
 		{
 			return true;
 		}
@@ -1106,7 +1123,7 @@ abstract class Store
 	 */
 	public function objectId($id)
 	{
-		if(!is_string($id) || strlen($id) !== 24)
+		if (!is_string($id) || strlen($id) !== 24)
 		{
 			return $id;
 		}
@@ -1123,7 +1140,7 @@ abstract class Store
 	{
 		static $options;
 
-		if(!$options)
+		if (!$options)
 		{
 			$options = Options::getInstance();
 		}
@@ -1147,7 +1164,7 @@ abstract class Store
 
 			return (int)$cur->toArray()[0]->ok === 1;
 		}
-		catch(\MongoDB\Driver\Exception\ConnectionTimeoutException $ex)
+		catch (\MongoDB\Driver\Exception\ConnectionTimeoutException $ex)
 		{
 			// connection failed
 			$this->log(__METHOD__, [
@@ -1167,8 +1184,11 @@ abstract class Store
 	 * @param array $options
 	 * @return int (affected)
 	 */
-	public function replaceBulk(array $documents, array $writeOptions = ['ordered' => true],
-		array $options = []): int
+	public function replaceBulk(
+		array $documents,
+		array $writeOptions = ['ordered' => true],
+		array $options = []
+	): int
 	{
 		$this->log(__METHOD__, []);
 		$documents = $this->beforeReplaceBulk($documents);
@@ -1210,7 +1230,7 @@ abstract class Store
 
 		$document = $this->beforeReplace($document);
 		self::autoIdMapperInput($document);
-		if(( $res = $this->collection()->replaceOne($filter, $document, $options) ))
+		if (($res = $this->collection()->replaceOne($filter, $document, $options)))
 		{
 			return (int)$res->getModifiedCount();
 		}
@@ -1237,8 +1257,11 @@ abstract class Store
 	 * @param array $options
 	 * @return int (affected)
 	 */
-	public function updateBulk(array $documents, array $writeOptions = ['ordered' => true],
-		array $options = []): int
+	public function updateBulk(
+		array $documents,
+		array $writeOptions = ['ordered' => true],
+		array $options = []
+	): int
 	{
 		$this->log(__METHOD__, []);
 		$documents = $this->beforeUpdateBulk($documents);
@@ -1279,7 +1302,7 @@ abstract class Store
 		]);
 
 		$update = $this->beforeUpdate($update);
-		if(($res = $this->collection()->updateMany($filter, [
+		if (($res = $this->collection()->updateMany($filter, [
 			'$set' => $update
 		], $options)))
 		{
@@ -1305,7 +1328,7 @@ abstract class Store
 		]);
 
 		$update = $this->beforeUpdate($update);
-		if(($res = $this->collection()->updateOne($filter, [
+		if (($res = $this->collection()->updateOne($filter, [
 			'$set' => $update
 		], $options)))
 		{
@@ -1331,18 +1354,18 @@ abstract class Store
 
 		$a = $this->findOne($filter);
 
-		if($a)
+		if ($a)
 		{
-			if(is_object($a))
+			if (is_object($a))
 			{
-				if(property_exists($a, $property))
+				if (property_exists($a, $property))
 				{
 					return $a->{$property};
 				}
 			}
 			else
 			{
-				if(array_key_exists($property, $a))
+				if (array_key_exists($property, $a))
 				{
 					return $a[$property];
 				}
