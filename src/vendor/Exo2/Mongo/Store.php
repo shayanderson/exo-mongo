@@ -672,6 +672,25 @@ abstract class Store
 	}
 
 	/**
+	 * Drop collection
+	 *
+	 * @return boolean
+	 */
+	public function drop(): bool
+	{
+		$this->collection(); // make sure collection name is set
+		$doc = $this->database()->dropCollection($this->collection);
+
+		if ($doc instanceof \MongoDB\Model\BSONDocument)
+		{
+			$doc = (array)$doc;
+			return $doc['ok'] == 1;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Execute command
 	 *
 	 * @param Command $command
@@ -684,6 +703,17 @@ abstract class Store
 			$databaseName ? $databaseName : $this->getDatabaseName(),
 			$command
 		);
+	}
+
+	/**
+	 * Check if collection exists
+	 *
+	 * @return boolean
+	 */
+	public function exists(): bool
+	{
+		$this->collection(); // ensure collection name set
+		return in_array($this->collection, $this->getCollections());
 	}
 
 	/**

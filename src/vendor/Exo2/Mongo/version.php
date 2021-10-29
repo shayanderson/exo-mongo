@@ -11,4 +11,4 @@
 /**
  * Exo Mongo version
  */
-const EXO_MONGO_VERSION = '1.0.9';
+const EXO_MONGO_VERSION = '1.0.10';
